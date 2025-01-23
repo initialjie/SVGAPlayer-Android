@@ -2,6 +2,7 @@ package com.opensource.svgaplayer.bitmap
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import java.io.InputStream
 
 /**
  * Bitmap 解码器
@@ -18,6 +19,9 @@ internal abstract class SVGABitmapDecoder<T> {
             inJustDecodeBounds = (reqWidth > 0 && reqHeight > 0)
             inPreferredConfig = Bitmap.Config.RGB_565
 
+            if (data is InputStream && data.markSupported()) {
+                data.mark(data.available())
+            }
             val bitmap = onDecode(data, this)
             if (!inJustDecodeBounds) {
                 return bitmap
@@ -27,6 +31,10 @@ internal abstract class SVGABitmapDecoder<T> {
             inSampleSize = BitmapSampleSizeCalculator.calculate(this, reqWidth, reqHeight)
             // Decode bitmap with inSampleSize set
             inJustDecodeBounds = false
+
+            if (data is InputStream && data.markSupported()) {
+                data.reset()
+            }
             onDecode(data, this)
         }
     }

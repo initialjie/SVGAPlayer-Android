@@ -1,5 +1,6 @@
 package com.opensource.svgaplayer
 
+import ByteStringInputStream
 import android.graphics.Bitmap
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -7,6 +8,7 @@ import android.media.SoundPool
 import android.os.Build
 import com.opensource.svgaplayer.bitmap.SVGABitmapByteArrayDecoder
 import com.opensource.svgaplayer.bitmap.SVGABitmapFileDecoder
+import com.opensource.svgaplayer.bitmap.SVGABitmapInputStreamDecoder
 import com.opensource.svgaplayer.entities.SVGAAudioEntity
 import com.opensource.svgaplayer.entities.SVGAVideoSpriteEntity
 import com.opensource.svgaplayer.proto.MovieEntity
@@ -17,6 +19,7 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.InputStream
 
 /**
  * Created by PonyCui on 16/6/18.
@@ -167,8 +170,10 @@ class SVGAVideoEntity {
                 return@forEach
             }
             val filePath = generateBitmapFilePath(byteString.utf8(), entry.key)
-            createBitmap(byteString.toByteArray(), filePath)?.let { bitmap ->
-                imageMap[entry.key] = bitmap
+            ByteStringInputStream(byteString).use {
+                createBitmap(it, filePath)?.let { bitmap ->
+                    imageMap[entry.key] = bitmap
+                }
             }
         }
     }
@@ -176,6 +181,12 @@ class SVGAVideoEntity {
     private fun createBitmap(byteArray: ByteArray, filePath: String): Bitmap? {
         val bitmap =
             SVGABitmapByteArrayDecoder.decodeBitmapFrom(byteArray, mFrameWidth, mFrameHeight)
+        return bitmap ?: createBitmap(filePath)
+    }
+
+    private fun createBitmap(inputStream: InputStream, filePath: String): Bitmap? {
+        val bitmap =
+            SVGABitmapInputStreamDecoder.decodeBitmapFrom(inputStream, mFrameWidth, mFrameHeight)
         return bitmap ?: createBitmap(filePath)
     }
 
@@ -229,7 +240,11 @@ class SVGAVideoEntity {
                             if (!isAudioData) return@apply
                             audioCache.parentFile?.mkdirs()
                             audioCache.createNewFile()
-                            FileOutputStream(audioCache).use { it.write(this.toByteArray()) }
+                            ByteStringInputStream(this).use { inputStream ->
+                                FileOutputStream(audioCache).use {
+                                    inputStream.copyTo(it, 1024)
+                                }
+                            }
                         }
                     }
                     if (audioCache.exists()) {
