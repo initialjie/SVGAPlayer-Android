@@ -2,11 +2,13 @@ package com.example.ponycui_home.svgaplayer;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 
+import com.opensource.svgaplayer.SVGACallback;
 import com.opensource.svgaplayer.SVGAImageView;
 import com.opensource.svgaplayer.SVGAParser;
 import com.opensource.svgaplayer.SVGASoundManager;
@@ -15,9 +17,7 @@ import com.opensource.svgaplayer.utils.log.SVGALogger;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 public class AnimationFromAssetsActivity extends Activity {
 
@@ -28,6 +28,7 @@ public class AnimationFromAssetsActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         animationView = new SVGAImageView(this);
+        animationView.setClearsAfterDetached(true);
         animationView.setBackgroundColor(Color.BLACK);
         animationView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -51,7 +52,40 @@ public class AnimationFromAssetsActivity extends Activity {
         svgaParser.decodeFromAssets(name, new SVGAParser.ParseCompletion() {
             @Override
             public void onComplete(@NotNull SVGAVideoEntity videoItem) {
-                Log.e("zzzz", "onComplete: ");
+                Log.e("zzzz", "onComplete: isAttachedToWindow=" + animationView.isAttachedToWindow());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    if (!animationView.isAttachedToWindow()) {
+                        videoItem.clear();
+                        animationView.setVideoItem(null, null);
+                        animationView.setImageDrawable(null);
+                        animationView.clear();
+                        return;
+                    }
+                }
+                animationView.setCallback(new SVGACallback() {
+                    @Override
+                    public void onPause() {
+
+                    }
+
+                    @Override
+                    public void onFinished() {
+                        videoItem.clear();
+                        animationView.setVideoItem(null, null);
+                        animationView.setImageDrawable(null);
+                        animationView.clear();
+                    }
+
+                    @Override
+                    public void onRepeat() {
+
+                    }
+
+                    @Override
+                    public void onStep(int frame, double percentage) {
+
+                    }
+                });
                 animationView.setVideoItem(videoItem, null);
                 animationView.stepToFrame(0, true);
             }
