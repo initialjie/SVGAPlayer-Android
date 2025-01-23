@@ -46,7 +46,6 @@ class SVGADynamicEntity {
     }
 
     fun setDynamicImage(url: String, forKey: String) {
-        val handler = android.os.Handler()
         SVGAParser.threadPoolExecutor.execute {
             (URL(url).openConnection() as? HttpURLConnection)?.let {
                 try {
@@ -55,7 +54,7 @@ class SVGADynamicEntity {
                     it.connect()
                     it.inputStream.use { stream ->
                         BitmapFactory.decodeStream(stream)?.let {
-                            handler.post { setDynamicImage(it, forKey) }
+                            SVGAParser.mainHandler.post { setDynamicImage(it, forKey) }
                         }
                     }
                 } catch (e: Exception) {
