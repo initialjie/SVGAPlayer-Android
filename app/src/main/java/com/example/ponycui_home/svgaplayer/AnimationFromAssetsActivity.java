@@ -52,7 +52,7 @@ public class AnimationFromAssetsActivity extends Activity {
             @Override
             public void onComplete(@NotNull SVGAVideoEntity videoItem) {
                 Log.e("zzzz", "onComplete: ");
-                animationView.setVideoItem(videoItem);
+                animationView.setVideoItem(videoItem, null);
                 animationView.stepToFrame(0, true);
             }
 

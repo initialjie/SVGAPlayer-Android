@@ -225,14 +225,15 @@ class SVGAParser(context: Context?) {
                             LogUtils.info(TAG, "inflate start")
                             inflate(bytes)?.let {
                                 LogUtils.info(TAG, "inflate complete")
+                                val movieEntity = MovieEntity.ADAPTER.decode(it)
                                 val videoItem = SVGAVideoEntity(
-                                    MovieEntity.ADAPTER.decode(it),
+                                    movieEntity,
                                     File(cacheKey),
                                     mFrameWidth,
                                     mFrameHeight
                                 )
                                 LogUtils.info(TAG, "SVGAVideoEntity prepare start")
-                                videoItem.prepare({
+                                videoItem.prepare(movieEntity, {
                                     LogUtils.info(TAG, "SVGAVideoEntity prepare success")
                                     this.invokeCompleteCallback(videoItem, callback, alias)
                                 },playCallback)
@@ -296,7 +297,7 @@ class SVGAParser(context: Context?) {
                                 SVGACache.buildSvgaFile(cacheKey).let { cacheFile ->
                                     try {
                                         cacheFile.takeIf { !it.exists() }?.createNewFile()
-                                        FileOutputStream(cacheFile).write(bytes)
+                                        FileOutputStream(cacheFile).use { it.write(bytes) }
                                     } catch (e: Exception) {
                                         LogUtils.error(TAG, "create cache file fail.", e)
                                         cacheFile.delete()
@@ -307,14 +308,15 @@ class SVGAParser(context: Context?) {
                         LogUtils.info(TAG, "inflate start")
                         inflate(bytes)?.let {
                             LogUtils.info(TAG, "inflate complete")
+                            val movieEntity = MovieEntity.ADAPTER.decode(it)
                             val videoItem = SVGAVideoEntity(
-                                    MovieEntity.ADAPTER.decode(it),
+                                    movieEntity,
                                     File(cacheKey),
                                     mFrameWidth,
                                     mFrameHeight
                             )
                             LogUtils.info(TAG, "SVGAVideoEntity prepare start")
-                            videoItem.prepare({
+                            videoItem.prepare(movieEntity, {
                                 LogUtils.info(TAG, "SVGAVideoEntity prepare success")
                                 this.invokeCompleteCallback(videoItem, callback, alias)
                             },playCallback)

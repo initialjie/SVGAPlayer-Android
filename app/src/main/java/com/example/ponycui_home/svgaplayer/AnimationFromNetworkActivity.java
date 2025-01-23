@@ -36,7 +36,7 @@ public class AnimationFromNetworkActivity extends Activity {
                 @Override
                 public void onComplete(@NotNull SVGAVideoEntity videoItem) {
                     Log.d("##","## FromNetworkActivity load onComplete");
-                    animationView.setVideoItem(videoItem);
+                    animationView.setVideoItem(videoItem, null);
                     animationView.startAnimation();
                 }
                 @Override
