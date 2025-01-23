@@ -33,5 +33,5 @@ android {
 
 
 dependencies {
-    implementation 'com.squareup.wire:wire-runtime:4.4.1'
+    implementation 'com.squareup.wire:wire-runtime:5.2.1'
 }
