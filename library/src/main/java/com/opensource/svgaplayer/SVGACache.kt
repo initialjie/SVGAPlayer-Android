@@ -49,7 +49,7 @@ object SVGACache {
             LogUtils.error(TAG, "SVGACache is not init!")
             return
         }
-        SVGAParser.threadPoolExecutor.execute {
+        SVGAParser.executor.execute {
             clearDir(cacheDir)
             LogUtils.info(TAG, "Clear svga cache done!")
         }

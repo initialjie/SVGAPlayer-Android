@@ -17,8 +17,8 @@ import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.Executor
 import java.util.concurrent.Executors
-import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.Inflater
 import java.util.zip.ZipInputStream
@@ -64,7 +64,7 @@ class SVGAParser(context: Context?) {
             val cancelBlock = {
                 cancelled = true
             }
-            threadPoolExecutor.execute {
+            executor.execute {
                 try {
                     LogUtils.info(TAG, "================ svga file download start ================")
                     if (HttpResponseCache.getInstalled() == null && !noCache) {
@@ -138,12 +138,12 @@ class SVGAParser(context: Context?) {
 
         internal val mainHandler = Handler(Looper.getMainLooper())
 
-        internal var threadPoolExecutor = Executors.newCachedThreadPool { r ->
+        internal var executor: Executor = Executors.newCachedThreadPool { r ->
             Thread(r, "SVGAParser-Thread-${threadNum.getAndIncrement()}")
         }
 
-        fun setThreadPoolExecutor(executor: ThreadPoolExecutor) {
-            threadPoolExecutor = executor
+        fun setExecutor(executor: Executor) {
+            this.executor = executor
         }
 
         fun shareParser(): SVGAParser {
@@ -171,7 +171,7 @@ class SVGAParser(context: Context?) {
             return
         }
         LogUtils.info(TAG, "================ decode $name from assets ================")
-        threadPoolExecutor.execute {
+        executor.execute {
             try {
                 mContext?.assets?.open(name)?.let {
                     this.decodeFromInputStream(
@@ -204,7 +204,7 @@ class SVGAParser(context: Context?) {
         val cacheKey = SVGACache.buildCacheKey(url);
         return if (SVGACache.isCached(cacheKey)) {
             LogUtils.info(TAG, "this url cached")
-            threadPoolExecutor.execute {
+            executor.execute {
                 if (SVGACache.isDefaultCache()) {
                     this.decodeFromCacheKey(cacheKey, callback, alias = urlPath)
                 } else {
@@ -247,7 +247,7 @@ class SVGAParser(context: Context?) {
         playCallback: PlayCallback?,
         alias: String? = null
     ) {
-        threadPoolExecutor.execute {
+        executor.execute {
             try {
                 LogUtils.info(
                     TAG,
@@ -310,7 +310,7 @@ class SVGAParser(context: Context?) {
             return
         }
         LogUtils.info(TAG, "================ decode $alias from input stream ================")
-        threadPoolExecutor.execute {
+        executor.execute {
             try {
                 readAsBytes(inputStream)?.let { bytes ->
                     if (isZipFile(bytes)) {
@@ -332,7 +332,7 @@ class SVGAParser(context: Context?) {
                     } else {
                         if (!SVGACache.isDefaultCache()) {
                             // 如果 SVGACache 设置类型为 FILE
-                            threadPoolExecutor.execute {
+                            executor.execute {
                                 SVGACache.buildSvgaFile(cacheKey).let { cacheFile ->
                                     try {
                                         cacheFile.takeIf { !it.exists() }?.createNewFile()
