@@ -102,5 +102,6 @@ class SVGADrawable(val videoItem: SVGAVideoEntity, val dynamicItem: SVGADynamicE
             audio.playID = null
         }
         videoItem.clear()
+        drawer.clear()
     }
 }

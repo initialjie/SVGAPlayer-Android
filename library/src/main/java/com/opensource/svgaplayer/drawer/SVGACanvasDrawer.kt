@@ -562,6 +562,14 @@ internal class SVGACanvasDrawer(videoItem: SVGAVideoEntity, val dynamicItem: SVG
         }
     }
 
+    fun clear() {
+        drawTextCache.forEach {
+            it.value.takeUnless { it.isRecycled }?.recycle()
+        }
+        drawTextCache.clear()
+        sharedValues.clear()
+    }
+
     class ShareValues {
 
         private val sharedPaint = Paint()
@@ -613,6 +621,7 @@ internal class SVGACanvasDrawer(videoItem: SVGAVideoEntity, val dynamicItem: SVG
         fun shareMatteCanvas(width: Int, height: Int): Canvas {
             //避免每帧都重建bitmap和canvas
             if (shareMatteCanvas == null || width != lastSharedWidth || height != lastSharedHeight) {
+                recycleSharedMatteBitmap()
                 sharedMatteBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8)
                 shareMatteCanvas = Canvas(sharedMatteBitmap!!)
                 lastSharedWidth = width
@@ -621,6 +630,15 @@ internal class SVGACanvasDrawer(videoItem: SVGAVideoEntity, val dynamicItem: SVG
                 shareMatteCanvas!!.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
             }
             return shareMatteCanvas!!
+        }
+
+        fun clear() {
+            recycleSharedMatteBitmap()
+        }
+
+        private fun recycleSharedMatteBitmap() {
+            sharedMatteBitmap?.takeUnless { it.isRecycled }?.recycle()
+            sharedMatteBitmap = null
         }
     }
 
